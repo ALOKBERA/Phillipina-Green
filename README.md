@@ -1,4 +1,4 @@
-# 🧴 Alok Liquid Shop — Daily Sales Tracker
+# 🧴 Phillipina Green — Daily Sales Tracker
 
 A professional full-stack MERN dashboard for recording and tracking daily sales at a cleaning products shop. Optimized for bilingual Gujarati and English language reporting, featuring automated session tracking, database persistence, and end-of-day PDF generation.
 
