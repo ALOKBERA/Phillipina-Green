@@ -18,7 +18,7 @@ export const ProductSection = ({ section, products, quantities, onUpdateQty, dis
           <ProductCard
             key={product.id}
             product={product}
-            quantities={quantities[product.id]}
+            quantities={quantities}
             onUpdateQty={onUpdateQty}
             disabled={disabled}
           />

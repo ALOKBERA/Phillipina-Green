@@ -41,7 +41,7 @@ export const SalesPage = ({ sessionInfo, onViewHistory }) => {
     if (!salesRecord) return;
     try {
       const dateStr = salesRecord.date;
-      const res = await api.get(`/api/sales/pdf?date=${dateStr}`, { responseType: 'blob' });
+      const res = await api.get(`/api/sales/pdf?date=${dateStr}&t=${Date.now()}`, { responseType: 'blob' });
       const file = new Blob([res.data], { type: 'application/pdf' });
       const fileURL = URL.createObjectURL(file);
       const link = document.createElement('a');
@@ -94,42 +94,40 @@ export const SalesPage = ({ sessionInfo, onViewHistory }) => {
       <main style={styles.main}>
         {error && <div style={styles.errorAlert}>{error}</div>}
 
-        {activeTab === 'products' ? (
-          <div>
-            <div style={styles.notice}>
-              💡 પ્રોડક્ટ પર + અથવા − દબાવીને સંખ્યા પસંદ કરો અને બિલ ટૅબ માં જુઓ.
+        <div style={{ display: activeTab === 'products' ? 'block' : 'none' }}>
+          <div style={styles.notice}>
+            💡 પ્રોડક્ટ પર + અથવા − દબાવીને સંખ્યા પસંદ કરો અને બિલ ટૅબ માં જુઓ.
+          </div>
+          
+          {/* If shop is closed, show a notice but keep controls enabled */}
+          {!sessionInfo.active && (
+            <div style={styles.closedNotice}>
+              ⚠️ અત્યારે દુકાન બંધ છે (પરંતુ તમે એન્ટ્રી ચાલુ રાખી શકો છો)
             </div>
-            
-            {/* If shop is closed, show a notice but keep controls enabled */}
-            {!sessionInfo.active && (
-              <div style={styles.closedNotice}>
-                ⚠️ અત્યારે દુકાન બંધ છે (પરંતુ તમે એન્ટ્રી ચાલુ રાખી શકો છો)
-              </div>
-            )}
+          )}
 
-            <ProductList
-              products={PRODUCTS}
-              quantities={quantities}
-              onUpdateQty={updateQuantity}
-              disabled={false}
+          <ProductList
+            products={PRODUCTS}
+            quantities={quantities}
+            onUpdateQty={updateQuantity}
+            disabled={false}
+          />
+        </div>
+
+        <div style={{ display: activeTab === 'bill' ? 'block' : 'none' }}>
+          <BillTable
+            items={recordItems}
+            onRemoveItem={(item) => removeItem(item, item.variant)}
+            disabled={false}
+          />
+          {recordItems.length > 0 && (
+            <GrandTotal
+              morningTotal={morningTotal}
+              eveningTotal={eveningTotal}
+              grandTotal={grandTotal}
             />
-          </div>
-        ) : (
-          <div>
-            <BillTable
-              items={recordItems}
-              onRemoveItem={(item) => removeItem(item, item.variant)}
-              disabled={false}
-            />
-            {recordItems.length > 0 && (
-              <GrandTotal
-                morningTotal={morningTotal}
-                eveningTotal={eveningTotal}
-                grandTotal={grandTotal}
-              />
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </main>
 
       <BottomBar

@@ -18,6 +18,10 @@ const SalesItemSchema = new mongoose.Schema({
     enum: ['pouch', 'bottle'],
     required: true,
   },
+  flavour: {
+    type: String,
+    default: '',
+  },
   unitPrice: {
     type: Number,
     required: true,

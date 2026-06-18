@@ -16,9 +16,42 @@ export const PRODUCTS = [
   { id: "bc3", gu: "બાથરૂમ ક્લીનર - ૩", en: "Bathroom Cleaner - 3", pouch: 105, bottle: 120, category: "Bathroom & Floor" },
   { id: "bc5", gu: "બાથરૂમ ક્લીનર - ૫", en: "Bathroom Cleaner - 5", pouch: 150, bottle: 175, category: "Bathroom & Floor" }, // Corrected pouch: 150
   // --- Floor Cleaner ---
-  { id: "fc1", gu: "ફ્લોર ક્લીનર - ૧", en: "Floor Cleaner - 1", pouch: 40, bottle: 50, category: "Bathroom & Floor" }, // Corrected bottle: 50
-  { id: "fc3", gu: "ફ્લોર ક્લીનર - ૩", en: "Floor Cleaner - 3", pouch: 105, bottle: 120, category: "Bathroom & Floor" },
-  { id: "fc5", gu: "ફ્લોર ક્લીનર - ૫", en: "Floor Cleaner - 5", pouch: 150, bottle: 175, category: "Bathroom & Floor" }, // Corrected pouch: 150
+  {
+    id: "fc1",
+    gu: "ફ્લોર ક્લીનર - ૧",
+    en: "Floor Cleaner - 1",
+    pouch: 40,
+    bottle: 50,
+    category: "Bathroom & Floor",
+    flavours: [
+      { id: "rose", gu: "રોઝ", en: "Rose" },
+      { id: "lavender", gu: "લેવેન્ડર", en: "Lavender" }
+    ]
+  },
+  {
+    id: "fc3",
+    gu: "ફ્લોર ક્લીનર - ૩",
+    en: "Floor Cleaner - 3",
+    pouch: 105,
+    bottle: 120,
+    category: "Bathroom & Floor",
+    flavours: [
+      { id: "rose", gu: "રોઝ", en: "Rose" },
+      { id: "lavender", gu: "લેવેન્ડર", en: "Lavender" }
+    ]
+  },
+  {
+    id: "fc5",
+    gu: "ફ્લોર ક્લીનર - ૫",
+    en: "Floor Cleaner - 5",
+    pouch: 150,
+    bottle: 175,
+    category: "Bathroom & Floor",
+    flavours: [
+      { id: "rose", gu: "રોઝ", en: "Rose" },
+      { id: "lavender", gu: "લેવેન્ડર", en: "Lavender" }
+    ]
+  },
   // --- Combo Kit ---
   { id: "combo", gu: "કોમ્બો કીટ", en: "Combo Kit", pouch: 105, bottle: null, category: "Other" },
   // --- Toilet Cleaner ---
@@ -40,10 +73,58 @@ export const PRODUCTS = [
   { id: "dp3", gu: "ડીટરજન્ટ પાઉડર - ૩", en: "Detergent Powder - 3", pouch: null, bottle: 210, category: "Surface & Detergent" }, // Corrected bottle: 210
   { id: "dp5", gu: "ડીટરજન્ટ પાઉડર - ૫", en: "Detergent Powder - 5", pouch: null, bottle: 330, category: "Surface & Detergent" },
   // --- Liquid Soap ---
-  { id: "ls250", gu: "લીકવીડ શોપ - ૨૫૦", en: "Liquid Soap - 250ml", pouch: null, bottle: 40, category: "Other" },
-  { id: "ls1", gu: "લીકવીડ શોપ - ૧", en: "Liquid Soap - 1", pouch: null, bottle: 70, category: "Other" },
-  { id: "ls3", gu: "લીકવીડ શોપ - ૩", en: "Liquid Soap - 3", pouch: null, bottle: 180, category: "Other" },
-  { id: "ls5", gu: "લીકવીડ શોપ - ૫", en: "Liquid Soap - 5", pouch: null, bottle: 255, category: "Other" },
+  {
+    id: "ls250",
+    gu: "લીકવીડ શોપ - ૨૫૦",
+    en: "Liquid Soap - 250ml",
+    pouch: null,
+    bottle: 40,
+    category: "Other",
+    flavours: [
+      { id: "orange", gu: "ઓરેંજ", en: "Orange" },
+      { id: "dplus", gu: "D+", en: "D+" },
+      { id: "green_apple", gu: "ગ્રીન એપલ", en: "Green Apple" }
+    ]
+  },
+  {
+    id: "ls1",
+    gu: "લીકવીડ શોપ - ૧",
+    en: "Liquid Soap - 1",
+    pouch: null,
+    bottle: 70,
+    category: "Other",
+    flavours: [
+      { id: "orange", gu: "ઓરેંજ", en: "Orange" },
+      { id: "dplus", gu: "D+", en: "D+" },
+      { id: "green_apple", gu: "ગ્રીન એપલ", en: "Green Apple" }
+    ]
+  },
+  {
+    id: "ls3",
+    gu: "લીકવીડ શોપ - ૩",
+    en: "Liquid Soap - 3",
+    pouch: null,
+    bottle: 180,
+    category: "Other",
+    flavours: [
+      { id: "orange", gu: "ઓરેંજ", en: "Orange" },
+      { id: "dplus", gu: "D+", en: "D+" },
+      { id: "green_apple", gu: "ગ્રીન એપલ", en: "Green Apple" }
+    ]
+  },
+  {
+    id: "ls5",
+    gu: "લીકવીડ શોપ - ૫",
+    en: "Liquid Soap - 5",
+    pouch: null,
+    bottle: 255,
+    category: "Other",
+    flavours: [
+      { id: "orange", gu: "ઓરેંજ", en: "Orange" },
+      { id: "dplus", gu: "D+", en: "D+" },
+      { id: "green_apple", gu: "ગ્રીન એપલ", en: "Green Apple" }
+    ]
+  },
   // --- Soap (Ayurvedic/Neem/Kismis) ---
   { id: "soap", gu: "શોપ (આયુર્વેદ, નિમ, ક્રીમી)", en: "Soap (Ayurvedic/Neem/Creamy)", pouch: null, bottle: 30, category: "Other" },
   // --- Fresh Cleaner ---

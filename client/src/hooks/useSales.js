@@ -18,10 +18,11 @@ export const useSales = (sessionInfo) => {
       // Initialize quantities map
       const qtyMap = {};
       res.data.items.forEach((item) => {
-        if (!qtyMap[item.productId]) {
-          qtyMap[item.productId] = { pouch: 0, bottle: 0 };
+        const key = item.flavour ? `${item.productId}_${item.flavour}` : item.productId;
+        if (!qtyMap[key]) {
+          qtyMap[key] = { pouch: 0, bottle: 0 };
         }
-        qtyMap[item.productId][item.variant] = item.quantity;
+        qtyMap[key][item.variant] = item.quantity;
       });
       setQuantities(qtyMap);
       setError(null);
@@ -43,22 +44,24 @@ export const useSales = (sessionInfo) => {
   }, []);
 
   // Modify quantity locally & trigger debounced server update
-  const updateQuantity = (product, variant, delta) => {
+  const updateQuantity = (product, variant, delta, flavour) => {
     const pId = product.id;
-    const currentQty = quantities[pId]?.[variant] || 0;
+    const selectedFlavour = flavour || '';
+    const key = selectedFlavour ? `${pId}_${selectedFlavour}` : pId;
+    const currentQty = quantities[key]?.[variant] || 0;
     const newQty = Math.max(0, currentQty + delta);
 
     // 1. Update local quantities immediately for high-responsiveness
     setQuantities((prev) => ({
       ...prev,
-      [pId]: {
-        ...prev[pId],
+      [key]: {
+        ...prev[key],
         [variant]: newQty,
       },
     }));
 
     // 2. Debounce backend PATCH request
-    const debounceKey = `${pId}_${variant}`;
+    const debounceKey = `${key}_${variant}`;
     if (debounceTimers.current[debounceKey]) {
       clearTimeout(debounceTimers.current[debounceKey]);
     }
@@ -66,14 +69,19 @@ export const useSales = (sessionInfo) => {
     debounceTimers.current[debounceKey] = setTimeout(async () => {
       try {
         const unitPrice = variant === 'pouch' ? product.pouch : product.bottle;
+        const flavourObj = product.flavours?.find((f) => f.id === selectedFlavour);
+        const nameGu = flavourObj ? `${product.gu} (${flavourObj.gu})` : product.gu;
+        const nameEn = flavourObj ? `${product.en} (${flavourObj.en})` : product.en;
+
         const payload = {
           productId: pId,
-          nameGu: product.gu,
-          nameEn: product.en,
+          nameGu,
+          nameEn,
           variant,
           unitPrice,
           quantity: newQty,
           session: sessionInfo.session || 'evening', // default fallback for safety
+          flavour: selectedFlavour,
         };
 
         const res = await api.patch('/api/sales/today', payload);
@@ -91,9 +99,11 @@ export const useSales = (sessionInfo) => {
   };
 
   // Remove an item entirely from the bill (sets quantity to 0 immediately)
-  const removeItem = async (product, variant) => {
-    const pId = product.id;
-    const debounceKey = `${pId}_${variant}`;
+  const removeItem = async (item, variant) => {
+    const pId = item.productId || item.id;
+    const selectedFlavour = item.flavour || '';
+    const key = selectedFlavour ? `${pId}_${selectedFlavour}` : pId;
+    const debounceKey = `${key}_${variant}`;
     if (debounceTimers.current[debounceKey]) {
       clearTimeout(debounceTimers.current[debounceKey]);
     }
@@ -101,22 +111,22 @@ export const useSales = (sessionInfo) => {
     // Update locally
     setQuantities((prev) => ({
       ...prev,
-      [pId]: {
-        ...prev[pId],
+      [key]: {
+        ...prev[key],
         [variant]: 0,
       },
     }));
 
     try {
-      const unitPrice = variant === 'pouch' ? product.pouch : product.bottle;
       const payload = {
         productId: pId,
-        nameGu: product.gu,
-        nameEn: product.en,
+        nameGu: item.nameGu,
+        nameEn: item.nameEn,
         variant,
-        unitPrice,
+        unitPrice: item.unitPrice,
         quantity: 0,
         session: sessionInfo.session || 'evening',
+        flavour: selectedFlavour,
       };
       const res = await api.patch('/api/sales/today', payload);
       setSalesRecord(res.data);
@@ -142,6 +152,7 @@ export const useSales = (sessionInfo) => {
             unitPrice: item.unitPrice,
             quantity: 0,
             session: item.session,
+            flavour: item.flavour || '',
           };
           await api.patch('/api/sales/today', payload);
         }

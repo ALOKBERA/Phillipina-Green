@@ -73,7 +73,7 @@ const getTodayRecord = async (req, res) => {
 // @route   PATCH /api/sales/today
 // @access  Private
 const updateTodayRecord = async (req, res) => {
-  const { productId, nameGu, nameEn, variant, unitPrice, quantity, session } = req.body;
+  const { productId, nameGu, nameEn, variant, unitPrice, quantity, session, flavour } = req.body;
   const today = getIstDate();
 
   // Validate session (allow override from request body for testing/flexibility)
@@ -101,7 +101,7 @@ const updateTodayRecord = async (req, res) => {
 
     // Find if item already exists
     const itemIndex = record.items.findIndex(
-      (item) => item.productId === productId && item.variant === variant
+      (item) => item.productId === productId && item.variant === variant && (item.flavour || '') === (flavour || '')
     );
 
     if (itemIndex >= 0) {
@@ -135,6 +135,7 @@ const updateTodayRecord = async (req, res) => {
           nameGu,
           nameEn,
           variant,
+          flavour: flavour || '',
           unitPrice,
           morningQty: activeSession === 'morning' ? quantity : 0,
           eveningQty: activeSession === 'evening' ? quantity : 0,
@@ -188,6 +189,9 @@ const downloadPdf = async (req, res) => {
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=sales-${dateStr}.pdf`);
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
 
     doc.pipe(res);
     doc.end();

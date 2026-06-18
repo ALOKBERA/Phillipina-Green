@@ -1,9 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import QtyControl from '../ui/QtyControl';
 
 export const ProductCard = ({ product, quantities = {}, onUpdateQty, disabled = false }) => {
-  const pouchQty = quantities.pouch || 0;
-  const bottleQty = quantities.bottle || 0;
+  const [selectedFlavour, setSelectedFlavour] = useState(
+    product.flavours ? product.flavours[0].id : ''
+  );
+
+  const key = product.flavours ? `${product.id}_${selectedFlavour}` : product.id;
+  const flavourQuantities = quantities[key] || {};
+
+  const pouchQty = flavourQuantities.pouch || 0;
+  const bottleQty = flavourQuantities.bottle || 0;
   const hasQty = pouchQty > 0 || bottleQty > 0;
 
   const hasPouch = product.pouch !== null;
@@ -17,6 +24,25 @@ export const ProductCard = ({ product, quantities = {}, onUpdateQty, disabled = 
           {product.en}
           {product.note && <span style={styles.note}> · {product.note}</span>}
         </span>
+
+        {/* Flavour dropdown for products with multiple flavours */}
+        {product.flavours && (
+          <div style={styles.flavourSelectContainer}>
+            <label style={styles.flavourLabel}>ફ્લેવર / Flavour:</label>
+            <select
+              value={selectedFlavour}
+              onChange={(e) => setSelectedFlavour(e.target.value)}
+              style={styles.flavourSelect}
+              disabled={disabled}
+            >
+              {product.flavours.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.gu} / {f.en}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       <div style={styles.variants}>
@@ -28,8 +54,8 @@ export const ProductCard = ({ product, quantities = {}, onUpdateQty, disabled = 
             </span>
             <QtyControl
               quantity={pouchQty}
-              onIncrease={() => onUpdateQty(product, 'pouch', 1)}
-              onDecrease={() => onUpdateQty(product, 'pouch', -1)}
+              onIncrease={() => onUpdateQty(product, 'pouch', 1, selectedFlavour)}
+              onDecrease={() => onUpdateQty(product, 'pouch', -1, selectedFlavour)}
               disabled={disabled}
             />
           </div>
@@ -43,8 +69,8 @@ export const ProductCard = ({ product, quantities = {}, onUpdateQty, disabled = 
             </span>
             <QtyControl
               quantity={bottleQty}
-              onIncrease={() => onUpdateQty(product, 'bottle', 1)}
-              onDecrease={() => onUpdateQty(product, 'bottle', -1)}
+              onIncrease={() => onUpdateQty(product, 'bottle', 1, selectedFlavour)}
+              onDecrease={() => onUpdateQty(product, 'bottle', -1, selectedFlavour)}
               disabled={disabled}
             />
           </div>
@@ -95,6 +121,28 @@ const styles = {
   note: {
     color: 'var(--gold)',
     fontWeight: '600',
+  },
+  flavourSelectContainer: {
+    marginTop: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
+  flavourLabel: {
+    fontSize: '0.7rem',
+    fontWeight: '750',
+    color: 'var(--text-light)',
+  },
+  flavourSelect: {
+    padding: '4px 8px',
+    fontSize: '0.78rem',
+    fontWeight: '750',
+    color: 'var(--green-dark)',
+    backgroundColor: 'var(--green-light)',
+    border: '1px solid var(--green-accent)',
+    borderRadius: '8px',
+    outline: 'none',
+    cursor: 'pointer',
   },
   variants: {
     display: 'flex',

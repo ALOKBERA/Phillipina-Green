@@ -28,7 +28,7 @@ export const HistoryPage = ({ onBack }) => {
 
   const handleDownloadPdf = async (dateStr) => {
     try {
-      const res = await api.get(`/api/sales/pdf?date=${dateStr}`, { responseType: 'blob' });
+      const res = await api.get(`/api/sales/pdf?date=${dateStr}&t=${Date.now()}`, { responseType: 'blob' });
       const file = new Blob([res.data], { type: 'application/pdf' });
       const fileURL = URL.createObjectURL(file);
       const link = document.createElement('a');

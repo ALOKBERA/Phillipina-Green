@@ -42,7 +42,7 @@ export const BillTable = ({ items = [], onRemoveItem, disabled = false }) => {
             const isPouch = item.variant === 'pouch';
 
             return (
-              <tr key={`${item.productId}_${item.variant}`} style={styles.row}>
+              <tr key={`${item.productId}_${item.variant}_${item.flavour || ''}`} style={styles.row}>
                 <td style={styles.td}>
                   <div style={styles.prodName}>{item.nameGu}</div>
                   <div style={styles.prodSub}>{item.nameEn}</div>
