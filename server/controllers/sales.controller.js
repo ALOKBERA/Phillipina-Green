@@ -97,6 +97,32 @@ const updateTodayRecord = async (req, res) => {
         eveningTotal: 0,
         grandTotal: 0,
       });
+    } else {
+      // Deduplicate items in case duplicate entries exist (e.g. from concurrent requests)
+      const merged = {};
+      const deduplicated = [];
+      record.items.forEach((item) => {
+        const key = `${item.productId}_${item.variant}_${item.flavour || ''}`;
+        if (merged[key]) {
+          merged[key].morningQty += item.morningQty;
+          merged[key].eveningQty += item.eveningQty;
+          merged[key].quantity = merged[key].morningQty + merged[key].eveningQty;
+          if (item.unitPrice) {
+            merged[key].unitPrice = item.unitPrice;
+          }
+        } else {
+          merged[key] = item;
+          deduplicated.push(item);
+        }
+      });
+
+      // Reset record.items list with deduplicated entries
+      record.items = [];
+      deduplicated.forEach((item) => {
+        if (item.quantity > 0) {
+          record.items.push(item);
+        }
+      });
     }
 
     // Find if item already exists

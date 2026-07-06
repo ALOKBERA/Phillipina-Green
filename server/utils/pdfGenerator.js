@@ -8,7 +8,7 @@ const path = require('path');
  * @returns {PDFDocument} - The pdfkit document object.
  */
 const generatePdf = (record) => {
-   const doc = new PDFDocument({ size: 'A4', margin: 50 });
+   const doc = new PDFDocument({ size: 'A4', margin: 50, bufferPages: true });
 
    const fontPath = path.join(__dirname, '..', 'assets', 'fonts', 'NotoSansGujarati-Regular.ttf');
    const hasFont = fs.existsSync(fontPath);
@@ -22,6 +22,34 @@ const generatePdf = (record) => {
    const guFont = hasFont ? 'Gujarati' : 'Helvetica';
    const enFont = 'Helvetica';
    const enFontBold = 'Helvetica-Bold';
+
+   // Deduplicate / aggregate items to ensure no duplicate rows appear in the report
+   const merged = {};
+   const deduplicatedItems = [];
+   record.items.forEach((item) => {
+      const key = `${item.productId}_${item.variant}_${item.flavour || ''}`;
+      if (merged[key]) {
+         merged[key].morningQty += item.morningQty;
+         merged[key].eveningQty += item.eveningQty;
+         merged[key].quantity = merged[key].morningQty + merged[key].eveningQty;
+      } else {
+         merged[key] = {
+            productId: item.productId,
+            nameGu: item.nameGu,
+            nameEn: item.nameEn,
+            variant: item.variant,
+            flavour: item.flavour || '',
+            unitPrice: item.unitPrice,
+            morningQty: item.morningQty,
+            eveningQty: item.eveningQty,
+            quantity: item.quantity
+         };
+         deduplicatedItems.push(merged[key]);
+       }
+   });
+
+   // Filter out items with quantity === 0
+   const finalItems = deduplicatedItems.filter(item => item.quantity > 0);
 
    // --- HEADER SECTION ---
    doc.fillColor('#1a6b2f').fontSize(22).font(guFont).text('આલોક લીક્વિડ શોપ - ધોરાજી', { align: 'center' });
@@ -46,35 +74,46 @@ const generatePdf = (record) => {
    doc.font(guFont).text('અહેવાલ સમય / ', 380, 120, { continued: true })
       .font(enFont).text(`Generated: ${timeStr}`);
 
+   // Function to draw table header at a specific Y coordinate
+   const drawTableHeader = (y) => {
+      // Draw table header background
+      doc.rect(50, y, 495, 25).fill('#1a6b2f');
+
+      // Header text
+      doc.fillColor('#ffffff').fontSize(9);
+      doc.font(enFontBold).text('#', 60, y + 8);
+
+      doc.font(guFont).text('ઉત્પાદન નામ / ', 90, y + 8, { continued: true })
+         .font(enFontBold).text('Product Description');
+
+      doc.font(guFont).text('પ્રકાર / ', 310, y + 8, { continued: true })
+         .font(enFontBold).text('Type');
+
+      doc.font(guFont).text('નંગ / ', 370, y + 8, { continued: true })
+         .font(enFontBold).text('Qty');
+
+      doc.font(guFont).text('ભાવ / ', 420, y + 8, { continued: true })
+         .font(enFontBold).text('Rate');
+
+      doc.font(guFont).text('કુલ / ', 490, y + 8, { continued: true })
+         .font(enFontBold).text('Total');
+   };
+
    // --- TABLE HEADER ---
    const tableTop = 150;
-
-   // Draw table header background
-   doc.rect(50, tableTop, 495, 25).fill('#1a6b2f');
-
-   // Header text
-   doc.fillColor('#ffffff').fontSize(9);
-   doc.font(enFontBold).text('#', 60, tableTop + 8);
-
-   doc.font(guFont).text('ઉત્પાદન નામ / ', 90, tableTop + 8, { continued: true })
-      .font(enFontBold).text('Product Description');
-
-   doc.font(guFont).text('પ્રકાર / ', 310, tableTop + 8, { continued: true })
-      .font(enFontBold).text('Type');
-
-   doc.font(guFont).text('નંગ / ', 370, tableTop + 8, { continued: true })
-      .font(enFontBold).text('Qty');
-
-   doc.font(guFont).text('ભાવ / ', 420, tableTop + 8, { continued: true })
-      .font(enFontBold).text('Rate');
-
-   doc.font(guFont).text('કુલ / ', 490, tableTop + 8, { continued: true })
-      .font(enFontBold).text('Total');
+   drawTableHeader(tableTop);
 
    // --- TABLE ROWS ---
    let yPosition = tableTop + 25;
 
-   record.items.forEach((item, index) => {
+   finalItems.forEach((item, index) => {
+      // Check if we need to wrap to a new page (leave margin for footer which starts at 750)
+      if (yPosition > 650) {
+         doc.addPage();
+         drawTableHeader(50);
+         yPosition = 75;
+      }
+
       // Draw subtle row bottom border
       doc.strokeColor('#f0f0f0').lineWidth(1).moveTo(50, yPosition + 25).lineTo(545, yPosition + 25).stroke();
 
@@ -115,7 +154,12 @@ const generatePdf = (record) => {
    });
 
    // --- SESSION BREAKDOWNS ---
-   yPosition += 15;
+   if (yPosition > 600) {
+      doc.addPage();
+      yPosition = 50;
+   } else {
+      yPosition += 15;
+   }
    doc.strokeColor('#1a6b2f').lineWidth(1.5).moveTo(50, yPosition).lineTo(545, yPosition).stroke();
    yPosition += 10;
 
@@ -144,10 +188,14 @@ const generatePdf = (record) => {
       .font(enFontBold).text('GRAND TOTAL:');
    doc.font(guFont).fontSize(14).text(`₹${record.grandTotal}`, 450, yPosition + 10, { align: 'right', width: 85 });
 
-   // --- FOOTER SECTION ---
-   doc.fillColor('#6b8f77').fontSize(8);
-   doc.font(guFont).text('આ અહેવાલ કોમ્પ્યુટર દ્વારા જનરેટ કરવામાં આવ્યો છે.', 50, 750, { align: 'center' });
-   doc.font(enFont).text('Powered by Alok Liquid Shop Daily Sales Tracker.', 50, 762, { align: 'center' });
+   // --- FOOTER SECTION ON ALL PAGES ---
+   const range = doc.bufferedPageRange();
+   for (let i = range.start; i < range.start + range.count; i++) {
+      doc.switchToPage(i);
+      doc.fillColor('#6b8f77').fontSize(8);
+      doc.font(guFont).text('આ અહેવાલ કોમ્પ્યુટર દ્વારા જનરેટ કરવામાં આવ્યો છે.', 50, 750, { align: 'center' });
+      doc.font(enFont).text(`Powered by Alok Liquid Shop Daily Sales Tracker. | Page ${i + 1} of ${range.count}`, 50, 762, { align: 'center' });
+   }
 
    return doc;
 };
