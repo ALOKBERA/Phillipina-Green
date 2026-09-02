@@ -2,7 +2,7 @@ import React from 'react';
 import { SECTIONS } from '../../data/products';
 import ProductSection from './ProductSection';
 
-export const ProductList = ({ products, quantities, onUpdateQty, disabled }) => {
+export const ProductList = ({ products, quantities, onUpdateQty, disabled, onEditPrices }) => {
   return (
     <div style={styles.container}>
       {SECTIONS.map((section) => (
@@ -13,6 +13,7 @@ export const ProductList = ({ products, quantities, onUpdateQty, disabled }) => 
           quantities={quantities}
           onUpdateQty={onUpdateQty}
           disabled={disabled}
+          onEditPrices={onEditPrices}
         />
       ))}
     </div>

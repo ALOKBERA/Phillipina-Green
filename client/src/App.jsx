@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AuthProvider, AuthContext } from './context/AuthContext';
+import { PriceProvider } from './context/PriceContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import SalesPage from './pages/SalesPage';
@@ -44,7 +45,9 @@ const AppContent = () => {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <PriceProvider>
+        <AppContent />
+      </PriceProvider>
     </AuthProvider>
   );
 }

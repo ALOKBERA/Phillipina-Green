@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 
-export const useSales = (sessionInfo) => {
+export const useSales = (sessionInfo, getProductPrice) => {
   const [salesRecord, setSalesRecord] = useState(null);
   const [quantities, setQuantities] = useState({});
   const [loading, setLoading] = useState(true);
@@ -68,7 +68,10 @@ export const useSales = (sessionInfo) => {
 
     debounceTimers.current[debounceKey] = setTimeout(async () => {
       try {
-        const unitPrice = variant === 'pouch' ? product.pouch : product.bottle;
+        // Use overridden price if available, otherwise fall back to static product price
+        const unitPrice = getProductPrice
+          ? getProductPrice(product.id, variant)
+          : (variant === 'pouch' ? product.pouch : product.bottle);
         const flavourObj = product.flavours?.find((f) => f.id === selectedFlavour);
         const nameGu = flavourObj ? `${product.gu} (${flavourObj.gu})` : product.gu;
         const nameEn = flavourObj ? `${product.en} (${flavourObj.en})` : product.en;

@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
+import { usePrices } from '../../context/PriceContext';
 import QtyControl from '../ui/QtyControl';
 
 export const ProductCard = ({ product, quantities = {}, onUpdateQty, disabled = false }) => {
+  const { products: mergedProducts } = usePrices();
+  // Use merged product (with any price overrides applied)
+  const mergedProduct = mergedProducts.find((p) => p.id === product.id) || product;
+
   const [selectedFlavour, setSelectedFlavour] = useState(
     product.flavours ? product.flavours[0].id : ''
   );
@@ -13,8 +18,8 @@ export const ProductCard = ({ product, quantities = {}, onUpdateQty, disabled = 
   const bottleQty = flavourQuantities.bottle || 0;
   const hasQty = pouchQty > 0 || bottleQty > 0;
 
-  const hasPouch = product.pouch !== null;
-  const hasBottle = product.bottle !== null;
+  const hasPouch = mergedProduct.pouch !== null;
+  const hasBottle = mergedProduct.bottle !== null;
 
   return (
     <div style={{ ...styles.card, ...(hasQty ? styles.activeCard : {}) }}>
@@ -50,7 +55,7 @@ export const ProductCard = ({ product, quantities = {}, onUpdateQty, disabled = 
           <div style={styles.row}>
             <span style={{ ...styles.label, color: 'var(--green-mid)' }}>પાઉચ</span>
             <span style={{ ...styles.price, backgroundColor: 'var(--green-light)', color: 'var(--green-dark)' }}>
-              ₹{product.pouch}
+              ₹{mergedProduct.pouch}
             </span>
             <QtyControl
               quantity={pouchQty}
@@ -65,7 +70,7 @@ export const ProductCard = ({ product, quantities = {}, onUpdateQty, disabled = 
           <div style={styles.row}>
             <span style={{ ...styles.label, color: '#1e5ba8' }}>બોટલ</span>
             <span style={{ ...styles.price, backgroundColor: '#e8f0fa', color: '#1e5ba8' }}>
-              ₹{product.bottle}
+              ₹{mergedProduct.bottle}
             </span>
             <QtyControl
               quantity={bottleQty}

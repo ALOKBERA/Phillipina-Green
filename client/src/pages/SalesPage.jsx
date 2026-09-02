@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PRODUCTS } from '../data/products';
+import { usePrices } from '../context/PriceContext';
 import { useSales } from '../hooks/useSales';
 import Header from '../components/layout/Header';
 import BottomBar from '../components/layout/BottomBar';
@@ -7,9 +7,19 @@ import ProductList from '../components/products/ProductList';
 import BillTable from '../components/bill/BillTable';
 import GrandTotal from '../components/bill/GrandTotal';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import EditPricePage from './EditPricePage';
 import api from '../api/axios';
 
 export const SalesPage = ({ sessionInfo, onViewHistory }) => {
+  const { products, overrides } = usePrices();
+
+  // Helper: get the (possibly overridden) unit price for a product+variant
+  const getProductPrice = (productId, variant) => {
+    const p = products.find((x) => x.id === productId);
+    if (!p) return 0;
+    return variant === 'pouch' ? p.pouch : p.bottle;
+  };
+
   const {
     salesRecord,
     quantities,
@@ -18,9 +28,10 @@ export const SalesPage = ({ sessionInfo, onViewHistory }) => {
     updateQuantity,
     removeItem,
     clearAll,
-  } = useSales(sessionInfo);
+  } = useSales(sessionInfo, getProductPrice);
 
   const [activeTab, setActiveTab] = useState('products');
+  const [editingCategory, setEditingCategory] = useState(null);
 
   const getActiveItemCount = () => {
     let count = 0;
@@ -56,6 +67,16 @@ export const SalesPage = ({ sessionInfo, onViewHistory }) => {
 
   if (loading) {
     return <LoadingSpinner />;
+  }
+
+  // Show edit price page when a category is being edited
+  if (editingCategory) {
+    return (
+      <EditPricePage
+        category={editingCategory}
+        onBack={() => setEditingCategory(null)}
+      />
+    );
   }
 
   const grandTotal = salesRecord?.grandTotal || 0;
@@ -107,10 +128,11 @@ export const SalesPage = ({ sessionInfo, onViewHistory }) => {
           )}
 
           <ProductList
-            products={PRODUCTS}
+            products={products}
             quantities={quantities}
             onUpdateQty={updateQuantity}
             disabled={false}
+            onEditPrices={(category) => setEditingCategory(category)}
           />
         </div>
 
