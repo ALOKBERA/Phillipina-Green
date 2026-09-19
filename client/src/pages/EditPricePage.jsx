@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { PRODUCTS, SECTIONS } from '../data/products';
 import { usePrices } from '../context/PriceContext';
 
@@ -9,7 +9,7 @@ const getSectionForCategory = (category) =>
   );
 
 export const EditPricePage = ({ category, onBack }) => {
-  const { products, saveCategoryPrices, resetCategoryPrices, hasOverride } = usePrices();
+  const { products, saveCategoryPrices, hasOverride } = usePrices();
 
   // Products belonging to this category (use merged prices as initial values)
   const categoryProducts = useMemo(
@@ -29,7 +29,24 @@ export const EditPricePage = ({ category, onBack }) => {
     return init;
   });
 
+  const [hasUserEdited, setHasUserEdited] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  // Update draft if remote products change and user hasn't typed anything yet
+  useEffect(() => {
+    if (!hasUserEdited) {
+      const init = {};
+      categoryProducts.forEach((p) => {
+        init[p.id] = {
+          pouch: p.pouch !== null ? String(p.pouch) : '',
+          bottle: p.bottle !== null ? String(p.bottle) : '',
+        };
+      });
+      setDraft(init);
+    }
+  }, [categoryProducts, hasUserEdited]);
 
   const sectionLabel =
     getSectionForCategory(category)?.label ||
@@ -38,44 +55,41 @@ export const EditPricePage = ({ category, onBack }) => {
   const handleChange = (productId, variant, value) => {
     // Allow empty string or positive numbers
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setHasUserEdited(true);
       setDraft((prev) => ({
         ...prev,
         [productId]: { ...prev[productId], [variant]: value },
       }));
       setSaved(false);
+      setErrorMsg('');
     }
   };
 
-  const handleSave = () => {
-    const updates = {};
-    categoryProducts.forEach((p) => {
-      const d = draft[p.id];
-      updates[p.id] = {};
-      if (p.pouch !== null) {
-        updates[p.id].pouch = d.pouch === '' ? 0 : parseFloat(d.pouch) || 0;
-      }
-      if (p.bottle !== null) {
-        updates[p.id].bottle = d.bottle === '' ? 0 : parseFloat(d.bottle) || 0;
-      }
-    });
-    saveCategoryPrices(updates);
-    setSaved(true);
-  };
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      setErrorMsg('');
+      const updates = {};
+      categoryProducts.forEach((p) => {
+        const d = draft[p.id];
+        updates[p.id] = {};
+        if (p.pouch !== null) {
+          updates[p.id].pouch = d.pouch === '' ? 0 : parseFloat(d.pouch) || 0;
+        }
+        if (p.bottle !== null) {
+          updates[p.id].bottle = d.bottle === '' ? 0 : parseFloat(d.bottle) || 0;
+        }
+      });
 
-  const handleResetAll = () => {
-    if (!window.confirm('બધા ભાવ ડિફૉલ્ટ પર રીસેટ કરવા?')) return;
-    const ids = categoryProducts.map((p) => p.id);
-    resetCategoryPrices(ids);
-    // Reset draft to original defaults from PRODUCTS
-    const init = {};
-    PRODUCTS.filter((p) => p.category === category).forEach((p) => {
-      init[p.id] = {
-        pouch: p.pouch !== null ? String(p.pouch) : '',
-        bottle: p.bottle !== null ? String(p.bottle) : '',
-      };
-    });
-    setDraft(init);
-    setSaved(false);
+      await saveCategoryPrices(updates);
+      setSaved(true);
+      setHasUserEdited(false);
+    } catch (err) {
+      console.error('Error saving prices:', err);
+      setErrorMsg('ભાવ સેવ કરવામાં ભૂલ આવી. ફરી પ્રયાસ કરો. / Failed to save prices. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -89,9 +103,8 @@ export const EditPricePage = ({ category, onBack }) => {
           <span style={styles.headerTitle}>✏️ ભાવ સંપાદિત કરો</span>
           <span style={styles.headerSub}>Edit Prices</span>
         </div>
-        <button style={styles.resetBtn} onClick={handleResetAll} id="edit-price-reset-btn">
-          ↺ Reset
-        </button>
+        {/* Balanced spacer for centered title (no reset button) */}
+        <div style={{ width: '65px' }} />
       </div>
 
       {/* Category Label */}
@@ -101,7 +114,7 @@ export const EditPricePage = ({ category, onBack }) => {
 
       {/* Info note */}
       <div style={styles.infoNote}>
-        💡 ભાવ બદલ્યા પછી <strong>Save</strong> દબાવો. ભાવ આ ઉપકરણ પર સ્ટોર થશે.
+        💡 ભાવ બદલ્યા પછી <strong>Save</strong> દબાવો. ભાવ ડેટાબેઝમાં કાયમ માટે સેવ થશે અને બધા ડિવાઇસ પર દેખાશે.
       </div>
 
       {/* Table header */}
@@ -140,6 +153,7 @@ export const EditPricePage = ({ category, onBack }) => {
                       onChange={(e) => handleChange(p.id, 'pouch', e.target.value)}
                       style={styles.input}
                       placeholder="—"
+                      disabled={isSaving}
                     />
                   </div>
                 ) : (
@@ -160,6 +174,7 @@ export const EditPricePage = ({ category, onBack }) => {
                       onChange={(e) => handleChange(p.id, 'bottle', e.target.value)}
                       style={styles.input}
                       placeholder="—"
+                      disabled={isSaving}
                     />
                   </div>
                 ) : (
@@ -173,15 +188,23 @@ export const EditPricePage = ({ category, onBack }) => {
 
       {/* Save footer */}
       <div style={styles.footer}>
+        {errorMsg && (
+          <span style={styles.errorMsg}>{errorMsg}</span>
+        )}
         {saved && (
-          <span style={styles.savedMsg}>✅ ભાવ સ્ટોર થઈ ગયા! / Prices saved!</span>
+          <span style={styles.savedMsg}>✅ ભાવ કાયમ માટે સેવ થઈ ગયા! / Prices permanently saved!</span>
         )}
         <button
           id="edit-price-save-btn"
-          style={styles.saveBtn}
+          style={{
+            ...styles.saveBtn,
+            opacity: isSaving ? 0.7 : 1,
+            cursor: isSaving ? 'not-allowed' : 'pointer',
+          }}
           onClick={handleSave}
+          disabled={isSaving}
         >
-          💾 Save Prices
+          {isSaving ? '⏳ સેવ થઈ રહ્યું છે... / Saving...' : '💾 Save Prices'}
         </button>
       </div>
     </div>
@@ -234,17 +257,6 @@ const styles = {
     fontSize: '0.72rem',
     fontWeight: '500',
   },
-  resetBtn: {
-    background: 'rgba(255,255,255,0.12)',
-    border: '1px solid rgba(255,255,255,0.25)',
-    color: '#ffd080',
-    borderRadius: '10px',
-    padding: '7px 12px',
-    fontSize: '0.78rem',
-    fontWeight: '700',
-    cursor: 'pointer',
-    fontFamily: 'inherit',
-  },
   categoryBanner: {
     backgroundColor: 'var(--green-mid)',
     padding: '10px 16px',
@@ -289,7 +301,7 @@ const styles = {
     flexDirection: 'column',
     gap: '8px',
     overflowY: 'auto',
-    paddingBottom: '100px',
+    paddingBottom: '110px',
   },
   row: {
     display: 'flex',
@@ -391,6 +403,12 @@ const styles = {
     fontWeight: '700',
     animation: 'fadeIn 0.3s ease',
   },
+  errorMsg: {
+    fontSize: '0.82rem',
+    color: '#dc2626',
+    fontWeight: '700',
+    textAlign: 'center',
+  },
   saveBtn: {
     width: '100%',
     backgroundColor: 'var(--green-mid)',
@@ -400,7 +418,6 @@ const styles = {
     padding: '14px',
     fontSize: '0.95rem',
     fontWeight: '800',
-    cursor: 'pointer',
     fontFamily: 'inherit',
     transition: 'all 0.2s ease',
     letterSpacing: '0.3px',

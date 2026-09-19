@@ -5,6 +5,7 @@ require('dotenv').config();
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
 const salesRoutes = require('./routes/sales.routes');
+const priceRoutes = require('./routes/price.routes');
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.get('/', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/sales', salesRoutes);
+app.use('/api/prices', priceRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
