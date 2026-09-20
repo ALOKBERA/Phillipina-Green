@@ -4,7 +4,7 @@ import api from '../api/axios';
 
 const STORAGE_KEY = 'phillipina_price_overrides';
 
-// Load overrides from localStorage as immediate cache
+// Load overrides from localStorage as immediate cache for instant rendering
 const loadOverrides = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -21,8 +21,8 @@ const mergeProducts = (overrides) =>
     if (!o) return p;
     return {
       ...p,
-      pouch: o.pouch !== undefined && o.pouch !== null ? o.pouch : p.pouch,
-      bottle: o.bottle !== undefined && o.bottle !== null ? o.bottle : p.bottle,
+      pouch: o.pouch !== undefined && o.pouch !== null ? Number(o.pouch) : p.pouch,
+      bottle: o.bottle !== undefined && o.bottle !== null ? Number(o.bottle) : p.bottle,
     };
   });
 
@@ -31,68 +31,40 @@ export const PriceContext = createContext(null);
 export const PriceProvider = ({ children }) => {
   const [overrides, setOverrides] = useState(loadOverrides);
   const [loading, setLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(Date.now());
 
   // Derived merged products list
   const products = mergeProducts(overrides);
 
-  // Fetch prices permanently stored in database and auto-sync any device-local overrides
-  const fetchPrices = useCallback(async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+  // Directly get the active unit price for a given product and variant
+  const getProductPrice = useCallback(
+    (productId, variant) => {
+      const o = overrides[productId];
+      if (o) {
+        const val = variant === 'pouch' ? o.pouch : o.bottle;
+        if (val !== undefined && val !== null) {
+          return Number(val);
+        }
+      }
+      const p = PRODUCTS.find((x) => x.id === productId);
+      if (!p) return 0;
+      const fallback = variant === 'pouch' ? p.pouch : p.bottle;
+      return fallback !== null && fallback !== undefined ? Number(fallback) : 0;
+    },
+    [overrides]
+  );
 
+  // Fetch latest prices directly from MongoDB database (MongoDB is the Single Source of Truth)
+  const fetchPrices = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await api.get('/api/prices');
+      // Add timestamp to prevent aggressive browser/HTTP caching on mobile browsers
+      const res = await api.get(`/api/prices?_t=${Date.now()}`);
       if (res.data?.success && res.data?.prices) {
         const serverPrices = res.data.prices;
-        const localOverrides = loadOverrides();
-
-        // Check if this device has custom prices in local storage not yet in database (e.g. friend's phone)
-        const pendingSync = {};
-        let hasLocalChanges = false;
-
-        Object.entries(localOverrides).forEach(([id, localPrice]) => {
-          if (!localPrice || typeof localPrice !== 'object') return;
-          const serverPrice = serverPrices[id];
-
-          if (!serverPrice) {
-            pendingSync[id] = localPrice;
-            hasLocalChanges = true;
-          } else {
-            const pouchDiff =
-              localPrice.pouch !== undefined &&
-              localPrice.pouch !== null &&
-              localPrice.pouch !== serverPrice.pouch;
-            const bottleDiff =
-              localPrice.bottle !== undefined &&
-              localPrice.bottle !== null &&
-              localPrice.bottle !== serverPrice.bottle;
-
-            if (pouchDiff || bottleDiff) {
-              pendingSync[id] = { ...serverPrice, ...localPrice };
-              hasLocalChanges = true;
-            }
-          }
-        });
-
-        if (hasLocalChanges && Object.keys(pendingSync).length > 0) {
-          try {
-            // Auto-upload the phone's custom prices to MongoDB so they reflect everywhere
-            const syncRes = await api.put('/api/prices', { updates: pendingSync });
-            if (syncRes.data?.success && syncRes.data?.prices) {
-              const finalMerged = syncRes.data.prices;
-              setOverrides(finalMerged);
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(finalMerged));
-              return;
-            }
-          } catch (syncErr) {
-            console.warn('Auto-sync of local overrides to server failed:', syncErr);
-          }
-        }
-
-        // Update state and cache with database prices
         setOverrides(serverPrices);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(serverPrices));
+        setLastUpdated(Date.now());
       }
     } catch (err) {
       console.warn('Could not fetch prices from server, using cached prices:', err);
@@ -102,18 +74,37 @@ export const PriceProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    // 1. Initial fetch on mount
     fetchPrices();
+
+    // 2. Re-fetch when user switches back to this tab/app on mobile phone
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchPrices();
+      }
+    };
+    const handleFocus = () => {
+      fetchPrices();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [fetchPrices]);
 
-  // Permanently save all price changes for a category to the MongoDB database
+  // Permanently save price changes for a category to the MongoDB database
   const saveCategoryPrices = useCallback(async (updates) => {
-    // updates: { [productId]: { pouch?: number, bottle?: number } }
     try {
       const res = await api.put('/api/prices', { updates });
       if (res.data?.success && res.data?.prices) {
         const permanentPrices = res.data.prices;
         setOverrides(permanentPrices);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(permanentPrices));
+        setLastUpdated(Date.now());
         return permanentPrices;
       }
     } catch (error) {
@@ -122,7 +113,7 @@ export const PriceProvider = ({ children }) => {
     }
   }, []);
 
-  // Check if a product has any custom price override
+  // Check if a product has any custom price in database
   const hasOverride = useCallback(
     (productId) => {
       const o = overrides[productId];
@@ -137,7 +128,9 @@ export const PriceProvider = ({ children }) => {
         products,
         overrides,
         loading,
+        lastUpdated,
         fetchPrices,
+        getProductPrice,
         saveCategoryPrices,
         hasOverride,
       }}

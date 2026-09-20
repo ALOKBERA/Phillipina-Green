@@ -9,6 +9,21 @@ const ProductPriceSchema = new mongoose.Schema(
       trim: true,
       match: /^[a-zA-Z0-9_-]{1,50}$/,
     },
+    nameGu: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    nameEn: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    category: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     pouch: {
       type: Number,
       default: null,

@@ -6,11 +6,14 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth.routes');
 const salesRoutes = require('./routes/sales.routes');
 const priceRoutes = require('./routes/price.routes');
+const { syncDefaultPrices } = require('./controllers/price.controller');
 
 const app = express();
 
 // Connect to Database
-connectDB();
+connectDB().then(() => {
+  syncDefaultPrices();
+});
 
 // Middleware
 const allowedOrigin = process.env.FRONTEND_URL || '*';

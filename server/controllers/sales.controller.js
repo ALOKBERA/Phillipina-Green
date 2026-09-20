@@ -1,4 +1,5 @@
 const SalesRecord = require('../models/SalesRecord');
+const ProductPrice = require('../models/ProductPrice');
 const { generatePdf } = require('../utils/pdfGenerator');
 
 // Helpers for IST date and session type
@@ -42,6 +43,52 @@ const cleanOldHistory = async (userId, today) => {
   }
 };
 
+// Ensure all items in a sales record strictly use the latest unit prices from the database
+const syncRecordPricesWithDatabase = async (record) => {
+  if (!record || !record.items || record.items.length === 0) return record;
+
+  try {
+    const prices = await ProductPrice.find({}).lean();
+    const priceMap = new Map();
+    prices.forEach((p) => {
+      if (p && p.productId) priceMap.set(p.productId, p);
+    });
+
+    let modified = false;
+    record.items.forEach((item) => {
+      const dbObj = priceMap.get(item.productId);
+      if (dbObj) {
+        const dbPrice = item.variant === 'pouch' ? dbObj.pouch : dbObj.bottle;
+        if (dbPrice !== null && dbPrice !== undefined && typeof dbPrice === 'number' && dbPrice >= 0) {
+          if (item.unitPrice !== dbPrice) {
+            item.unitPrice = dbPrice;
+            modified = true;
+          }
+        }
+      }
+    });
+
+    let morningTotal = 0;
+    let eveningTotal = 0;
+    record.items.forEach((item) => {
+      const unit = typeof item.unitPrice === 'number' ? item.unitPrice : 0;
+      morningTotal += (item.morningQty || 0) * unit;
+      eveningTotal += (item.eveningQty || 0) * unit;
+    });
+
+    if (modified || record.morningTotal !== morningTotal || record.eveningTotal !== eveningTotal) {
+      record.morningTotal = morningTotal;
+      record.eveningTotal = eveningTotal;
+      record.grandTotal = morningTotal + eveningTotal;
+      await record.save();
+    }
+  } catch (err) {
+    console.error('Error syncing sales record with database prices:', err.message);
+  }
+
+  return record;
+};
+
 // @desc    Get today's sales record
 // @route   GET /api/sales/today
 // @access  Private
@@ -61,6 +108,9 @@ const getTodayRecord = async (req, res) => {
         eveningTotal: 0,
         grandTotal: 0,
       });
+    } else {
+      // Sync today's bill items with database prices
+      record = await syncRecordPricesWithDatabase(record);
     }
 
     res.json(record);
@@ -86,6 +136,16 @@ const updateTodayRecord = async (req, res) => {
   }
 
   try {
+    // Resolve authoritative price from database
+    let effectiveUnitPrice = typeof unitPrice === 'number' ? unitPrice : 0;
+    const dbPriceDoc = await ProductPrice.findOne({ productId }).lean();
+    if (dbPriceDoc) {
+      const dbPrice = variant === 'pouch' ? dbPriceDoc.pouch : dbPriceDoc.bottle;
+      if (dbPrice !== null && dbPrice !== undefined && typeof dbPrice === 'number' && dbPrice >= 0) {
+        effectiveUnitPrice = dbPrice;
+      }
+    }
+
     let record = await SalesRecord.findOne({ userId: req.user._id, date: today });
 
     if (!record) {
@@ -98,7 +158,7 @@ const updateTodayRecord = async (req, res) => {
         grandTotal: 0,
       });
     } else {
-      // Deduplicate items in case duplicate entries exist (e.g. from concurrent requests)
+      // Deduplicate items in case duplicate entries exist
       const merged = {};
       const deduplicated = [];
       record.items.forEach((item) => {
@@ -146,7 +206,7 @@ const updateTodayRecord = async (req, res) => {
       }
 
       item.quantity = item.morningQty + item.eveningQty;
-      item.unitPrice = unitPrice;
+      item.unitPrice = effectiveUnitPrice;
       item.session = activeSession;
 
       // Remove from list if total quantity is 0
@@ -162,7 +222,7 @@ const updateTodayRecord = async (req, res) => {
           nameEn,
           variant,
           flavour: flavour || '',
-          unitPrice,
+          unitPrice: effectiveUnitPrice,
           morningQty: activeSession === 'morning' ? quantity : 0,
           eveningQty: activeSession === 'evening' ? quantity : 0,
           quantity,
@@ -205,10 +265,15 @@ const downloadPdf = async (req, res) => {
   }
 
   try {
-    const record = await SalesRecord.findOne({ userId: req.user._id, date: dateStr });
+    let record = await SalesRecord.findOne({ userId: req.user._id, date: dateStr });
 
     if (!record) {
       return res.status(404).json({ message: `Sales record not found for date ${dateStr}` });
+    }
+
+    // Ensure today's sales record has up-to-date database prices before generating report
+    if (dateStr === today) {
+      record = await syncRecordPricesWithDatabase(record);
     }
 
     const doc = generatePdf(record);
@@ -257,10 +322,14 @@ const getDateRecord = async (req, res) => {
   }
 
   try {
-    const record = await SalesRecord.findOne({ userId: req.user._id, date });
+    let record = await SalesRecord.findOne({ userId: req.user._id, date });
 
     if (!record) {
       return res.status(404).json({ message: `Sales record not found for ${date}` });
+    }
+
+    if (date === today) {
+      record = await syncRecordPricesWithDatabase(record);
     }
 
     res.json(record);

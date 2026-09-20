@@ -11,14 +11,7 @@ import EditPricePage from './EditPricePage';
 import api from '../api/axios';
 
 export const SalesPage = ({ sessionInfo, onViewHistory }) => {
-  const { products, overrides } = usePrices();
-
-  // Helper: get the (possibly overridden) unit price for a product+variant
-  const getProductPrice = (productId, variant) => {
-    const p = products.find((x) => x.id === productId);
-    if (!p) return 0;
-    return variant === 'pouch' ? p.pouch : p.bottle;
-  };
+  const { products, overrides, fetchPrices, getProductPrice, loading: pricesLoading } = usePrices();
 
   const {
     salesRecord,
@@ -28,10 +21,23 @@ export const SalesPage = ({ sessionInfo, onViewHistory }) => {
     updateQuantity,
     removeItem,
     clearAll,
+    refreshRecord,
   } = useSales(sessionInfo, getProductPrice);
 
   const [activeTab, setActiveTab] = useState('products');
   const [editingCategory, setEditingCategory] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefreshAll = async () => {
+    try {
+      setRefreshing(true);
+      await Promise.all([fetchPrices(), refreshRecord()]);
+    } catch (err) {
+      console.warn('Refresh error:', err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const getActiveItemCount = () => {
     let count = 0;
@@ -116,6 +122,21 @@ export const SalesPage = ({ sessionInfo, onViewHistory }) => {
         {error && <div style={styles.errorAlert}>{error}</div>}
 
         <div style={{ display: activeTab === 'products' ? 'block' : 'none' }}>
+          <div style={styles.statusBar}>
+            <span style={styles.statusText}>
+              🟢 <strong>ડેટાબેઝ ભાવ / Live Database Prices</strong>
+            </span>
+            <button
+              id="refresh-prices-btn"
+              onClick={handleRefreshAll}
+              style={styles.refreshBtn}
+              title="રીફ્રેશ ભાવ અને બિલ / Refresh Prices & Bill"
+              disabled={refreshing || pricesLoading}
+            >
+              {refreshing ? '⏳ સિંક થાય છે...' : '🔄 રીફ્રેશ / Refresh'}
+            </button>
+          </div>
+
           <div style={styles.notice}>
             💡 પ્રોડક્ટ પર + અથવા − દબાવીને સંખ્યા પસંદ કરો અને બિલ ટૅબ માં જુઓ.
           </div>
@@ -248,6 +269,34 @@ const styles = {
     fontWeight: '600',
     marginBottom: '14px',
     border: '1px solid #ffcdd2',
+  },
+  statusBar: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#ffffff',
+    border: '1.5px solid var(--green-accent)',
+    borderRadius: '12px',
+    padding: '8px 12px',
+    marginBottom: '12px',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+  },
+  statusText: {
+    fontSize: '0.78rem',
+    color: 'var(--text-dark)',
+    fontWeight: '600',
+  },
+  refreshBtn: {
+    backgroundColor: 'var(--green-light)',
+    color: 'var(--green-dark)',
+    border: '1px solid var(--green-accent)',
+    borderRadius: '8px',
+    padding: '5px 12px',
+    fontSize: '0.76rem',
+    fontWeight: '700',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    transition: 'all 0.2s ease',
   },
 };
 

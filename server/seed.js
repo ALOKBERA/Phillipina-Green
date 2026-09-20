@@ -87,10 +87,27 @@ async function seedUsers() {
   }
 }
 
+const { syncDefaultPrices } = require('./controllers/price.controller');
+
+async function seedProductPrices() {
+  const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/shopdb';
+  try {
+    await mongoose.connect(MONGO_URI);
+    console.log('Connecting to MongoDB for product price seeding...');
+    await syncDefaultPrices();
+    console.log('✔ All product prices verified/seeded in MongoDB.');
+  } catch (error) {
+    console.error('❌ Product price seeding error:', error.message);
+  } finally {
+    await mongoose.disconnect();
+  }
+}
+
 async function runSeeder() {
   console.log('--- Starting Seeder Script ---');
   await downloadFont();
   await seedUsers();
+  await seedProductPrices();
   console.log('--- Seeder Script Complete ---');
 }
 
