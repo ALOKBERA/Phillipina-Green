@@ -34,7 +34,7 @@ export const CategoryCard = ({ category, itemCount = 0, onClick }) => {
 
 const styles = {
   card: {
-    aspectRatio: '1.3 / 1',
+    aspectRatio: '1.1 / 1',
     backgroundColor: '#ffffff',
     border: '1.5px solid var(--gray-border)',
     borderRadius: '14px',
