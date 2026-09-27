@@ -103,8 +103,10 @@ const styles = {
     backgroundColor: '#ffffff',
     borderRadius: 'var(--border-radius)',
     border: '1.5px solid var(--gray-border)',
-    overflow: 'hidden',
+    overflowX: 'auto',
     boxShadow: 'var(--shadow-sm)',
+    width: '100%',
+    boxSizing: 'border-box',
   },
   table: {
     width: '100%',

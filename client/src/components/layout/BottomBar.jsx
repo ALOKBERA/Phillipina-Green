@@ -8,7 +8,7 @@ export const BottomBar = ({
   onDownloadPdf,
   isClosed = false,
 }) => {
-  if (activeTab === 'products') {
+  if (activeTab === 'products' || activeTab === 'category') {
     return (
       <div style={styles.bar}>
         <button onClick={() => setActiveTab('bill')} style={styles.primaryBtn}>
@@ -28,7 +28,7 @@ export const BottomBar = ({
         📄 પીડીએફ રિપોર્ટ
       </button>
 
-      <button onClick={() => setActiveTab('products')} style={styles.primaryBtn}>
+      <button onClick={() => setActiveTab('category')} style={styles.primaryBtn}>
         + ઉમેરો
       </button>
     </div>
@@ -42,7 +42,7 @@ const styles = {
     left: '50%',
     transform: 'translateX(-50%)',
     width: '100%',
-    maxWidth: '600px',
+    maxWidth: '768px',
     backgroundColor: '#ffffff',
     borderTop: '2px solid var(--gray-border)',
     padding: '16px 20px',

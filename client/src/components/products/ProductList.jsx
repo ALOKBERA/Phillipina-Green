@@ -2,10 +2,25 @@ import React from 'react';
 import { SECTIONS } from '../../data/products';
 import ProductSection from './ProductSection';
 
-export const ProductList = ({ products, quantities, onUpdateQty, disabled, onEditPrices }) => {
+export const ProductList = ({
+  products,
+  quantities,
+  onUpdateQty,
+  disabled,
+  onEditPrices,
+  filterCategory,
+}) => {
+  const sectionsToRender = filterCategory
+    ? SECTIONS.filter(
+        (section) =>
+          section.id === filterCategory ||
+          section.label.toLowerCase().includes(filterCategory.toLowerCase())
+      )
+    : SECTIONS;
+
   return (
     <div style={styles.container}>
-      {SECTIONS.map((section) => (
+      {sectionsToRender.map((section) => (
         <ProductSection
           key={section.label}
           section={section}

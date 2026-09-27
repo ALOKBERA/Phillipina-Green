@@ -4,6 +4,7 @@ import { useSales } from '../hooks/useSales';
 import Header from '../components/layout/Header';
 import BottomBar from '../components/layout/BottomBar';
 import ProductList from '../components/products/ProductList';
+import CategoryPage from './CategoryPage';
 import BillTable from '../components/bill/BillTable';
 import GrandTotal from '../components/bill/GrandTotal';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
@@ -24,7 +25,7 @@ export const SalesPage = ({ sessionInfo, onViewHistory }) => {
     refreshRecord,
   } = useSales(sessionInfo, getProductPrice);
 
-  const [activeTab, setActiveTab] = useState('products');
+  const [activeTab, setActiveTab] = useState('category');
   const [editingCategory, setEditingCategory] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -96,32 +97,68 @@ export const SalesPage = ({ sessionInfo, onViewHistory }) => {
 
       <div style={styles.tabHeader}>
         <button
+          id="tab-btn-category"
+          onClick={() => setActiveTab('category')}
+          style={{
+            ...styles.tabBtn,
+            ...(activeTab === 'category' ? styles.activeTabBtn : {}),
+          }}
+        >
+          📁 કેટેગરી
+        </button>
+        <button
+          id="tab-btn-products"
           onClick={() => setActiveTab('products')}
           style={{
             ...styles.tabBtn,
             ...(activeTab === 'products' ? styles.activeTabBtn : {}),
           }}
         >
-          🛒 ઉત્પાદનો (Products)
+          🛒 બધા ઉત્પાદનો
         </button>
         <button
+          id="tab-btn-bill"
           onClick={() => setActiveTab('bill')}
           style={{
             ...styles.tabBtn,
             ...(activeTab === 'bill' ? styles.activeTabBtn : {}),
           }}
         >
-          🧾 બિલ (Bill)
+          🧾 બિલ
         </button>
-        <button onClick={onViewHistory} style={styles.historyTabBtn}>
-          📅 ઇતિહાસ (History)
+        <button id="tab-btn-history" onClick={onViewHistory} style={styles.historyTabBtn}>
+          📅 ઇતિહાસ
         </button>
       </div>
 
       <main style={styles.main}>
         {error && <div style={styles.errorAlert}>{error}</div>}
 
-        <div style={{ display: activeTab === 'products' ? 'block' : 'none' }}>
+        {/* Tab 1: Category Grid & Filtered Scoped View */}
+        <div style={{ display: activeTab === 'category' ? 'block' : 'none', width: '100%', boxSizing: 'border-box' }}>
+          <div style={styles.statusBar}>
+            <button
+              id="refresh-prices-btn-cat"
+              onClick={handleRefreshAll}
+              style={styles.refreshBtn}
+              title="રીફ્રેશ ભાવ અને બિલ / Refresh Prices & Bill"
+              disabled={refreshing || pricesLoading}
+            >
+              {refreshing ? '⏳ સિંક થાય છે...' : '🔄 રીફ્રેશ / Refresh'}
+            </button>
+          </div>
+
+          <CategoryPage
+            products={products}
+            quantities={quantities}
+            onUpdateQty={updateQuantity}
+            disabled={false}
+            onEditPrices={(category) => setEditingCategory(category)}
+          />
+        </div>
+
+        {/* Tab 2: All Products (Full Scrolling Catalog) */}
+        <div style={{ display: activeTab === 'products' ? 'block' : 'none', width: '100%', boxSizing: 'border-box' }}>
           <div style={styles.statusBar}>
             <button
               id="refresh-prices-btn"
@@ -143,7 +180,8 @@ export const SalesPage = ({ sessionInfo, onViewHistory }) => {
           />
         </div>
 
-        <div style={{ display: activeTab === 'bill' ? 'block' : 'none' }}>
+        {/* Tab 3: Bill Table & Totals */}
+        <div style={{ display: activeTab === 'bill' ? 'block' : 'none', width: '100%', boxSizing: 'border-box' }}>
           <BillTable
             items={recordItems}
             onRemoveItem={(item) => removeItem(item, item.variant)}
@@ -173,35 +211,41 @@ export const SalesPage = ({ sessionInfo, onViewHistory }) => {
 
 const styles = {
   container: {
-    maxWidth: '600px',
+    width: '100%',
+    maxWidth: '768px',
     margin: '0 auto',
     backgroundColor: 'var(--white)',
     minHeight: '100vh',
     display: 'flex',
     flexDirection: 'column',
     boxShadow: 'var(--shadow-lg)',
+    boxSizing: 'border-box',
   },
   tabHeader: {
     display: 'flex',
+    width: '100%',
     backgroundColor: '#ffffff',
     borderBottom: '2.5px solid var(--gray-border)',
     position: 'sticky',
     top: 0,
     zIndex: 95,
+    boxSizing: 'border-box',
   },
   tabBtn: {
-    flex: 1,
-    padding: '14px 10px',
+    flex: '1 1 0',
+    minWidth: 0,
+    padding: '11px 2px',
     border: 'none',
     background: 'none',
-    fontSize: '0.86rem',
-    fontWeight: '600',
+    fontSize: 'clamp(0.65rem, 2.7vw, 0.78rem)',
+    fontWeight: '700',
     color: 'var(--text-light)',
     cursor: 'pointer',
     textAlign: 'center',
     borderBottom: '3.5px solid transparent',
     outline: 'none',
     transition: 'all 0.2s',
+    whiteSpace: 'nowrap',
   },
   activeTabBtn: {
     color: 'var(--green-dark)',
@@ -209,22 +253,26 @@ const styles = {
     fontWeight: '800',
   },
   historyTabBtn: {
-    flex: 1,
-    padding: '14px 10px',
+    flex: '1 1 0',
+    minWidth: 0,
+    padding: '11px 2px',
     border: 'none',
     background: 'none',
-    fontSize: '0.86rem',
-    fontWeight: '600',
+    fontSize: 'clamp(0.65rem, 2.7vw, 0.78rem)',
+    fontWeight: '700',
     color: 'var(--gold)',
     cursor: 'pointer',
     textAlign: 'center',
     borderBottom: '3.5px solid transparent',
     outline: 'none',
+    whiteSpace: 'nowrap',
   },
   main: {
     flex: 1,
-    padding: '16px 16px 100px',
+    width: '100%',
+    padding: '12px 10px 100px',
     backgroundColor: 'var(--gray-light)',
+    boxSizing: 'border-box',
   },
   errorAlert: {
     backgroundColor: 'var(--red-light)',

@@ -74,17 +74,18 @@ body {
   animation: fadeIn var(--transition) forwards;
 }
 
-/* Core Layout styles */
 .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  max-width: 600px;
+  width: 100%;
+  max-width: 768px;
   margin: 0 auto;
   background-color: var(--white);
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.04);
   position: relative;
   padding-bottom: 90px; /* Space for bottom bar */
+  box-sizing: border-box;
 }
 
 /* Custom print style override */

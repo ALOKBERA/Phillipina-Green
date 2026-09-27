@@ -99,13 +99,15 @@ export const HistoryPage = ({ onBack }) => {
 
 const styles = {
   container: {
-    maxWidth: '600px',
+    width: '100%',
+    maxWidth: '768px',
     margin: '0 auto',
     backgroundColor: 'var(--white)',
     minHeight: '100vh',
     display: 'flex',
     flexDirection: 'column',
     boxShadow: 'var(--shadow-lg)',
+    boxSizing: 'border-box',
   },
   header: {
     background: 'linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 100%)',

@@ -66,11 +66,11 @@ export const PRODUCTS = [
   { id: "gc5", gu: "ગ્લાસ ક્લીનર - ૫", en: "Glass Cleaner - 5", pouch: 125, bottle: 150, category: "Toilet & Glass" },
   // --- Surface Cleaner ---
   { id: "sc1", gu: "સરફેસ ક્લીનર - ૧", en: "Surface Cleaner - 1", pouch: null, bottle: 80, category: "Surface & Detergent" },
-  { id: "sc3", gu: "સરફેસ ક્લીનર - ૩", en: "Surface Cleaner - 3", pouch: null, bottle: 210, category: "Surface & Detergent" }, // Corrected bottle: 210
+  { id: "sc3", gu: "સરફેસ ક્લીનર - ૩", en: "Surface Cleaner - 3", pouch: null, bottle: 210, category: "Surface & Detergent" },
   { id: "sc5", gu: "સરફેસ ક્લીનર - ૫", en: "Surface Cleaner - 5", pouch: null, bottle: 300, category: "Surface & Detergent" },
   // --- Detergent Powder ---
-  { id: "dp1", gu: "ડીટરજન્ટ પાઉડર - ૧", en: "Detergent Powder - 1", pouch: null, bottle: 75, category: "Surface & Detergent" }, // Corrected bottle: 75
-  { id: "dp3", gu: "ડીટરજન્ટ પાઉડર - ૩", en: "Detergent Powder - 3", pouch: null, bottle: 210, category: "Surface & Detergent" }, // Corrected bottle: 210
+  { id: "dp1", gu: "ડીટરજન્ટ પાઉડર - ૧", en: "Detergent Powder - 1", pouch: null, bottle: 75, category: "Surface & Detergent" },
+  { id: "dp3", gu: "ડીટરજન્ટ પાઉડર - ૩", en: "Detergent Powder - 3", pouch: null, bottle: 210, category: "Surface & Detergent" },
   { id: "dp5", gu: "ડીટરજન્ટ પાઉડર - ૫", en: "Detergent Powder - 5", pouch: null, bottle: 330, category: "Surface & Detergent" },
   // --- Liquid Soap ---
   {
@@ -79,7 +79,7 @@ export const PRODUCTS = [
     en: "Liquid Soap - 250ml",
     pouch: null,
     bottle: 40,
-    category: "Other",
+    category: "Liquid Soap",
     flavours: [
       { id: "orange", gu: "ઓરેંજ", en: "Orange" },
       { id: "dplus", gu: "D+", en: "D+" },
@@ -92,7 +92,7 @@ export const PRODUCTS = [
     en: "Liquid Soap - 1",
     pouch: null,
     bottle: 70,
-    category: "Other",
+    category: "Liquid Soap",
     flavours: [
       { id: "orange", gu: "ઓરેંજ", en: "Orange" },
       { id: "dplus", gu: "D+", en: "D+" },
@@ -105,7 +105,7 @@ export const PRODUCTS = [
     en: "Liquid Soap - 3",
     pouch: null,
     bottle: 180,
-    category: "Other",
+    category: "Liquid Soap",
     flavours: [
       { id: "orange", gu: "ઓરેંજ", en: "Orange" },
       { id: "dplus", gu: "D+", en: "D+" },
@@ -118,38 +118,39 @@ export const PRODUCTS = [
     en: "Liquid Soap - 5",
     pouch: null,
     bottle: 255,
-    category: "Other",
+    category: "Liquid Soap",
     flavours: [
       { id: "orange", gu: "ઓરેંજ", en: "Orange" },
       { id: "dplus", gu: "D+", en: "D+" },
       { id: "green_apple", gu: "ગ્રીન એપલ", en: "Green Apple" }
     ]
   },
-  // --- Soap (Ayurvedic/Neem/Kismis) ---
+  // --- Soap (Ayurvedic/Neem/Creamy) ---
   { id: "soap", gu: "શોપ (આયુર્વેદ, નિમ, ક્રીમી)", en: "Soap (Ayurvedic/Neem/Creamy)", pouch: null, bottle: 30, category: "Other" },
   // --- Fresh Cleaner ---
-  { id: "fresh", gu: "ફેસ ક્લીનર - ૧૦૦ ml", en: "Face Cleaner - 100ml", pouch: null, bottle: 25, category: "Other" }, // Corrected bottle: 25
+  { id: "fresh", gu: "ફેસ ક્લીનર - ૧૦૦ ml", en: "Face Cleaner - 100ml", pouch: null, bottle: 25, category: "Other" },
   // --- White Cleaner ---
-  { id: "wc1", gu: "વ્હાઇટ ક્લીનર - ૧", en: "White Cleaner - 1", pouch: null, bottle: 18, category: "Other" }, // Corrected bottle: 18
+  { id: "wc1", gu: "વ્હાઇટ ક્લીનર - ૧", en: "White Cleaner - 1", pouch: null, bottle: 18, category: "Other" },
   { id: "wc5", gu: "વ્હાઇટ ક્લીનર - ૫", en: "White Cleaner - 5", pouch: null, bottle: 80, category: "Other" },
   // --- Scrubber ---
   { id: "scrp", gu: "સ્ક્રબર પૅડ", en: "Scrubber Pad", pouch: null, bottle: 10, category: "Other" },
   { id: "scrs", gu: "સ્ટીલ સ્ક્રબર", en: "Steel Scrubber", pouch: null, bottle: 10, category: "Other" },
   // --- Detergent Cake ---
-  { id: "dcake", gu: "ડીટરજન્ટ કેક - ૫ નંગ", en: "Detergent Cake - 5 pcs", pouch: null, bottle: 50, category: "Other" }, // Corrected bottle: 50
+  { id: "dcake", gu: "ડીટરજન્ટ કેક - ૫ નંગ", en: "Detergent Cake - 5 pcs", pouch: null, bottle: 50, category: "Other" },
   // --- Bleach ---
   { id: "bl1", gu: "બ્લીચ - ૧", en: "Bleach - 1", pouch: null, bottle: 40, category: "Other" },
   { id: "bl5", gu: "બ્લીચ - ૫", en: "Bleach - 5", pouch: null, bottle: 175, category: "Other" },
   // --- Bath Liquid Soap ---
-  { id: "bls500", gu: "બાથ લીક્વિડ શોપ - ૫૦૦", en: "Bath Liquid Soap - 500ml", pouch: null, bottle: null, category: "Other" },
-  { id: "bls1", gu: "બાથ લીક્વિડ શોપ - ૧", en: "Bath Liquid Soap - 1", pouch: null, bottle: null, category: "Other" },
+  { id: "bls500", gu: "બાથ લીક્વિડ શોપ - ૫૦૦", en: "Bath Liquid Soap - 500ml", pouch: null, bottle: null, category: "Liquid Soap" },
+  { id: "bls1", gu: "બાથ લીક્વિડ શોપ - ૧", en: "Bath Liquid Soap - 1", pouch: null, bottle: null, category: "Liquid Soap" },
 ];
 
 export const SECTIONS = [
-  { label: "🍽️ ડીશ વોશ / Dish Wash", ids: ["dw1", "dw3", "dw5", "dwm1", "dwm5"] },
-  { label: "👕 કલોથ વોશ / Cloth Wash", ids: ["cw1", "cw3", "cw5", "ccw1", "ccw5"] },
-  { label: "🚿 બાથ + ફ્લોર / Bath & Floor", ids: ["bc1", "bc3", "bc5", "fc1", "fc3", "fc5"] },
-  { label: "🚽 ટોઇલેટ + ગ્લાસ / Toilet & Glass", ids: ["tc500", "tc1", "tc3", "tc5", "gc500", "gc1", "gc3", "gc5"] },
-  { label: "🧪 સરફેસ + ડીટ. પાઉડર / Surface & Powder", ids: ["sc1", "sc3", "sc5", "dp1", "dp3", "dp5"] },
-  { label: "🧴 અન્ય ઉત્પાદનો / Other Products", ids: ["ls250", "ls1", "ls3", "ls5", "soap", "fresh", "wc1", "wc5", "scrp", "scrs", "dcake", "bl1", "bl5", "combo", "bls500", "bls1"] },
+  { id: "dishwash", label: "🍽️ ડીશ વોશ / Dish Wash", ids: ["dw1", "dw3", "dw5", "dwm1", "dwm5"] },
+  { id: "clothwash", label: "👕 કલોથ વોશ / Cloth Wash", ids: ["cw1", "cw3", "cw5", "ccw1", "ccw5"] },
+  { id: "bathfloor", label: "🚿 બાથ + ફ્લોર / Bath & Floor", ids: ["bc1", "bc3", "bc5", "fc1", "fc3", "fc5"] },
+  { id: "toiletglass", label: "🚽 ટોઇલેટ + ગ્લાસ / Toilet & Glass", ids: ["tc500", "tc1", "tc3", "tc5", "gc500", "gc1", "gc3", "gc5"] },
+  { id: "surfacepowder", label: "🧪 સરફેસ + ડીટ. પાઉડર / Surface & Powder", ids: ["sc1", "sc3", "sc5", "dp1", "dp3", "dp5"] },
+  { id: "liquidsoap", label: "🧼 લીકવીડ શોપ / Liquid Soap", ids: ["ls250", "ls1", "ls3", "ls5", "bls500", "bls1"] },
+  { id: "other", label: "📦 અન્ય ઉત્પાદનો / Other Products", ids: ["combo", "soap", "fresh", "wc1", "wc5", "scrp", "scrs", "dcake", "bl1", "bl5"] },
 ];

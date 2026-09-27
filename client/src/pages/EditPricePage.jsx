@@ -213,13 +213,15 @@ export const EditPricePage = ({ category, onBack }) => {
 
 const styles = {
   page: {
-    maxWidth: '600px',
+    width: '100%',
+    maxWidth: '768px',
     margin: '0 auto',
     minHeight: '100vh',
     backgroundColor: 'var(--gray-light)',
     display: 'flex',
     flexDirection: 'column',
     boxShadow: 'var(--shadow-lg)',
+    boxSizing: 'border-box',
   },
   header: {
     display: 'flex',
@@ -386,7 +388,7 @@ const styles = {
     left: '50%',
     transform: 'translateX(-50%)',
     width: '100%',
-    maxWidth: '600px',
+    maxWidth: '768px',
     backgroundColor: '#fff',
     borderTop: '2px solid var(--green-light)',
     padding: '14px 20px',
