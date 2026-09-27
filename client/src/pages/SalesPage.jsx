@@ -123,9 +123,6 @@ export const SalesPage = ({ sessionInfo, onViewHistory }) => {
 
         <div style={{ display: activeTab === 'products' ? 'block' : 'none' }}>
           <div style={styles.statusBar}>
-            <span style={styles.statusText}>
-              🟢 <strong>ડેટાબેઝ ભાવ / Live Database Prices</strong>
-            </span>
             <button
               id="refresh-prices-btn"
               onClick={handleRefreshAll}
@@ -136,17 +133,6 @@ export const SalesPage = ({ sessionInfo, onViewHistory }) => {
               {refreshing ? '⏳ સિંક થાય છે...' : '🔄 રીફ્રેશ / Refresh'}
             </button>
           </div>
-
-          <div style={styles.notice}>
-            💡 પ્રોડક્ટ પર + અથવા − દબાવીને સંખ્યા પસંદ કરો અને બિલ ટૅબ માં જુઓ.
-          </div>
-          
-          {/* If shop is closed, show a notice but keep controls enabled */}
-          {!sessionInfo.active && (
-            <div style={styles.closedNotice}>
-              ⚠️ અત્યારે દુકાન બંધ છે (પરંતુ તમે એન્ટ્રી ચાલુ રાખી શકો છો)
-            </div>
-          )}
 
           <ProductList
             products={products}
@@ -240,26 +226,6 @@ const styles = {
     padding: '16px 16px 100px',
     backgroundColor: 'var(--gray-light)',
   },
-  notice: {
-    backgroundColor: 'var(--green-light)',
-    border: '1.5px solid var(--green-accent)',
-    borderRadius: '12px',
-    padding: '10px 14px',
-    fontSize: '0.8rem',
-    color: 'var(--green-dark)',
-    fontWeight: '600',
-    marginBottom: '14px',
-  },
-  closedNotice: {
-    backgroundColor: 'var(--red-light)',
-    border: '1.5px solid var(--red)',
-    borderRadius: '12px',
-    padding: '10px 14px',
-    fontSize: '0.8rem',
-    color: 'var(--red)',
-    fontWeight: '600',
-    marginBottom: '14px',
-  },
   errorAlert: {
     backgroundColor: 'var(--red-light)',
     color: 'var(--red)',
@@ -273,29 +239,20 @@ const styles = {
   statusBar: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#ffffff',
-    border: '1.5px solid var(--green-accent)',
-    borderRadius: '12px',
-    padding: '8px 12px',
+    justifyContent: 'flex-end',
     marginBottom: '12px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-  },
-  statusText: {
-    fontSize: '0.78rem',
-    color: 'var(--text-dark)',
-    fontWeight: '600',
   },
   refreshBtn: {
-    backgroundColor: 'var(--green-light)',
+    backgroundColor: '#E6F4EA',
     color: 'var(--green-dark)',
-    border: '1px solid var(--green-accent)',
-    borderRadius: '8px',
-    padding: '5px 12px',
-    fontSize: '0.76rem',
+    border: '1.5px solid var(--green-accent)',
+    borderRadius: '10px',
+    padding: '6px 14px',
+    fontSize: '0.8rem',
     fontWeight: '700',
     cursor: 'pointer',
     fontFamily: 'inherit',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
     transition: 'all 0.2s ease',
   },
 };
